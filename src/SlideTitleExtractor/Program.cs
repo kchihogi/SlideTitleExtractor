@@ -54,8 +54,17 @@ class Program
             int slideIndex = 1;
             var slideTitles = new List<object>();
 
-            foreach (var slidePart in presentationPart.SlideParts)
+            var slideIdList = presentationPart.Presentation.SlideIdList;
+            if (slideIdList == null)
             {
+                Console.WriteLine("スライドが見つかりませんでした。");
+                return;
+            }
+
+            var slideIds = slideIdList.ChildElements.OfType<SlideId>();
+            foreach (var slideId in slideIds)
+            {
+                var slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId);
                 string title = GetSlideTitle(slidePart);
                 slideTitles.Add(new { Slide = slideIndex, Title = title });
                 slideIndex++;
