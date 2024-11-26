@@ -1,4 +1,5 @@
 {
     "IncludeSlideNumber": false,
-    "TitleMaxLength": 255
+    "TitleMaxLength": 100,
+    "UniqueTitles": true
 }

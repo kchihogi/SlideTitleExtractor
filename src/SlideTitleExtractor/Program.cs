@@ -10,6 +10,7 @@ class Config
 {
     public bool IncludeSlideNumber { get; set; } = false;
     public int TitleMaxLength { get; set; } = 255;
+    public bool UniqueTitles { get; set; } = true;
 
     public static Config LoadConfig(string configPath)
     {
@@ -20,6 +21,12 @@ class Config
         }
         return new Config();
     }
+}
+
+class SlideTitle
+{
+    public int? Slide { get; set; }
+    public string Title { get; set; }
 }
 
 class Program
@@ -72,7 +79,7 @@ class Program
             }
 
             int slideIndex = 1;
-            var slideTitles = new List<object>();
+            var slideTitles = new List<SlideTitle>();
 
             var slideIdList = presentationPart.Presentation.SlideIdList;
             if (slideIdList == null)
@@ -90,8 +97,27 @@ class Program
                 {
                     title = title.Substring(0, config.TitleMaxLength);
                 }
-                slideTitles.Add(new { Slide = config.IncludeSlideNumber ? slideIndex : (int?)null, Title = title });
+                slideTitles.Add(new SlideTitle { Slide = config.IncludeSlideNumber ? slideIndex : (int?)null, Title = title });
                 slideIndex++;
+            }
+
+            // UniqueTitles
+            if (config.UniqueTitles)
+            {
+                // if slide titles duplicate, add #1, #2, #3, ... to the end of the title
+                var slideTitlesGrouped = slideTitles.GroupBy(s => s.Title);
+                foreach (var group in slideTitlesGrouped)
+                {                    
+                    if (group.Count() > 1)
+                    {
+                        int index = 1;
+                        foreach (var slide in group)
+                        {
+                            slide.Title += $" #{index}";
+                            index++;
+                        }
+                    }
+                }
             }
 
             // Output based on specified format
