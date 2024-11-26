@@ -1,0 +1,30 @@
+# Build Folders
+bin/
+obj/
+publish/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.userprefs
+
+# Logs
+*.log
+*.tlog
+*.cache
+
+# IDE-specific files
+.vscode/
+.idea/
+*.vs
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Dependency directories
+packages/
+
+# vscode
+.vscode/
