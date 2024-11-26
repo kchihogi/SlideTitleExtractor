@@ -6,6 +6,22 @@ using System.Collections.Generic;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Presentation;
 
+class Config
+{
+    public bool IncludeSlideNumber { get; set; } = false;
+    public int TitleMaxLength { get; set; } = 255;
+
+    public static Config LoadConfig(string configPath)
+    {
+        if (File.Exists(configPath))
+        {
+            string json = File.ReadAllText(configPath);
+            return JsonSerializer.Deserialize<Config>(json) ?? new Config();
+        }
+        return new Config();
+    }
+}
+
 class Program
 {
     // タイトルに相当する名前を複数の言語で定義
@@ -22,6 +38,10 @@ class Program
         string filePath = args[0];
         string outputFormat = args.Length > 1 ? args[1].ToLower() : "text";
 
+        // コンフィグの読み込み
+        string configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SlideTitleExtractor.config.json");
+        Config config = Config.LoadConfig(configPath);
+
         // ファイルの存在確認
         if (!File.Exists(filePath))
         {
@@ -31,7 +51,7 @@ class Program
 
         try
         {
-            ExtractSlideTitles(filePath, outputFormat);
+            ExtractSlideTitles(filePath, outputFormat, config);
         }
         catch (Exception ex)
         {
@@ -39,7 +59,7 @@ class Program
         }
     }
 
-    static void ExtractSlideTitles(string filePath, string outputFormat)
+    static void ExtractSlideTitles(string filePath, string outputFormat, Config config)
     {
         using (PresentationDocument presentationDocument = PresentationDocument.Open(filePath, false))
         {
@@ -66,7 +86,11 @@ class Program
             {
                 var slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId);
                 string title = GetSlideTitle(slidePart);
-                slideTitles.Add(new { Slide = slideIndex, Title = title });
+                if (title.Length > config.TitleMaxLength)
+                {
+                    title = title.Substring(0, config.TitleMaxLength);
+                }
+                slideTitles.Add(new { Slide = config.IncludeSlideNumber ? slideIndex : (int?)null, Title = title });
                 slideIndex++;
             }
 
@@ -78,7 +102,8 @@ class Program
                 {
                     foreach (var slide in slideTitles)
                     {
-                        writer.WriteLine($"Slide {((dynamic)slide).Slide}: {((dynamic)slide).Title}");
+                        string slideInfo = config.IncludeSlideNumber ? $"Slide {((dynamic)slide).Slide}: " : "";
+                        writer.WriteLine(slideInfo + ((dynamic)slide).Title);
                     }
                 }
                 Console.WriteLine("スライドタイトルをテキストファイルに出力しました: " + outputFilePath);
