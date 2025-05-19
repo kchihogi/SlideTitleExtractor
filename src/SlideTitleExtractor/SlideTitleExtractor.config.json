@@ -1,5 +1,8 @@
 {
     "IncludeSlideNumber": false,
     "TitleMaxLength": 100,
-    "UniqueTitles": true
+    "UniqueTitles": true,
+    "DeleteEmptyTitle": true,
+    "OnlyBiggerLetters": true,
+    "DefaultFontSize": 6000
 }
